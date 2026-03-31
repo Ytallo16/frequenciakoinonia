@@ -60,11 +60,9 @@ O aplicativo deve seguir uma identidade visual baseada em tons de roxo, transmit
 
 ### Navegação & Menu (Drawer)
 * Menu lateral acessível ("3 tracinhos").
-* **Acesso Restrito:** Solicitar senha/PIN para funções administrativas (Cadastros e Configurações).
 * **Itens do Menu:**
     * Cadastrar Pessoa (Regente/Coralista/Membro).
     * Relatório Geral Anual (Acumulado de todos os trimestres).
-    * Trocar Senha de Acesso.
 
 ### Tela 1: Home (Seleção de Ciclo)
 * **Header:** Logo ou Nome "Frequência Koinonia". Cor de fundo: `#47034e`.

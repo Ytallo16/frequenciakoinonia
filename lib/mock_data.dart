@@ -87,14 +87,46 @@ final List<Trimestre> mockTrimestres = [
 ];
 
 final List<Matricula> mockMatriculas = [
-  Matricula(trimestreId: 't1', pessoaId: '1', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '2', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '3', funcaoNoTrimestre: FuncaoTrimestre.regente),
-  Matricula(trimestreId: 't1', pessoaId: '4', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '5', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '6', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '7', funcaoNoTrimestre: FuncaoTrimestre.coralista),
-  Matricula(trimestreId: 't1', pessoaId: '8', funcaoNoTrimestre: FuncaoTrimestre.coralista),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '1',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '2',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '3',
+    funcaoNoTrimestre: FuncaoTrimestre.regente,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '4',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '5',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '6',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '7',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
+  Matricula(
+    trimestreId: 't1',
+    pessoaId: '8',
+    funcaoNoTrimestre: FuncaoTrimestre.coralista,
+  ),
 ];
 
 final List<Evento> mockEventos = [
@@ -102,8 +134,8 @@ final List<Evento> mockEventos = [
     id: 'e1',
     trimestreId: 't1',
     dataHora: DateTime(2026, 2, 20, 19, 0),
-    tipo: TipoEvento.ensaioGeral,
     nome: 'Ensaio Geral - Fevereiro',
+    descricao: 'Ensaio geral com foco no repertório de fevereiro.',
     musicas: [
       Musica(
         nome: 'Grande é o Senhor',
@@ -131,8 +163,8 @@ final List<Evento> mockEventos = [
     id: 'e2',
     trimestreId: 't1',
     dataHora: DateTime(2026, 2, 27, 19, 0),
-    tipo: TipoEvento.ensaioNaipe,
     nome: 'Ensaio de Naipe - Soprano',
+    descricao: 'Ajustes de afinação e dinâmica para o naipe soprano.',
     musicas: [
       Musica(
         nome: 'Magnificent',
@@ -150,8 +182,8 @@ final List<Evento> mockEventos = [
     id: 'e3',
     trimestreId: 't1',
     dataHora: DateTime(2026, 2, 15, 19, 0),
-    tipo: TipoEvento.ensaioGeral,
     nome: 'Ensaio Geral - Meio de Fev',
+    descricao: 'Revisão intermediária do repertório do trimestre.',
   ),
 ];
 

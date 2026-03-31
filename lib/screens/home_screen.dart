@@ -1,17 +1,53 @@
 import 'package:flutter/material.dart';
 import '../mock_data.dart';
+import 'calendario_ensaios_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final List<int> _anosDisponiveis;
+  int? _anoSelecionado;
+
+  @override
+  void initState() {
+    super.initState();
+    _anosDisponiveis = mockCiclos.map((c) => c.ano).toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    final cicloAtivo = mockCiclos.where((c) => c.ativo).toList();
+    if (cicloAtivo.isNotEmpty) {
+      _anoSelecionado = cicloAtivo.first.ano;
+    } else if (_anosDisponiveis.isNotEmpty) {
+      _anoSelecionado = _anosDisponiveis.first;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cicloAtivo = mockCiclos.firstWhere((c) => c.ativo);
+    final trimestresDoAno =
+        mockTrimestres
+            .where((trimestre) => trimestre.anoId == _anoSelecionado)
+            .toList()
+          ..sort((a, b) => a.numero.compareTo(b.numero));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Frequência Koinonia'),
+        title: const Text('Eventos por Trimestre'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Voltar ao início',
+            icon: const Icon(Icons.home_outlined),
+            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Container(
@@ -28,36 +64,35 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: const Center(
                   child: Text(
-                    'Menu',
-                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    'Acesso Rápido',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.person_add, color: Color(0xFF9f5ea5)),
-                title: const Text('Cadastrar Pessoa', style: TextStyle(color: Color(0xFF5d0565))),
+                title: const Text(
+                  'Cadastrar Coralista',
+                  style: TextStyle(color: Color(0xFF5d0565)),
+                ),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cadastrar Pessoa - Mock')),
-                  );
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/coralistas');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.bar_chart, color: Color(0xFF9f5ea5)),
-                title: const Text('Relatório Geral Anual', style: TextStyle(color: Color(0xFF5d0565))),
+                title: const Text(
+                  'Estatísticas',
+                  style: TextStyle(color: Color(0xFF5d0565)),
+                ),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Relatório Geral Anual - Mock')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.lock, color: Color(0xFF9f5ea5)),
-                title: const Text('Trocar Senha de Acesso', style: TextStyle(color: Color(0xFF5d0565))),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Trocar Senha - Mock')),
-                  );
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/estatisticas');
                 },
               ),
             ],
@@ -75,42 +110,140 @@ class HomeScreen extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          size: 80,
-                          color: Color(0xFF7e3285),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ano Vigente: ${cicloAtivo.ano}',
-                          style: Theme.of(context).textTheme.headlineLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 32,
+                                color: Color(0xFF7e3285),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Selecione o ano e o trimestre',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: const Color(0xFF5d0565),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          DropdownButtonFormField<int>(
+                            initialValue: _anoSelecionado,
+                            decoration: const InputDecoration(
+                              labelText: 'Ano',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _anosDisponiveis
+                                .map(
+                                  (ano) => DropdownMenuItem<int>(
+                                    value: ano,
+                                    child: Text(ano.toString()),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (novoAno) {
+                              setState(() {
+                                _anoSelecionado = novoAno;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/dashboard');
-                  },
-                  icon: const Icon(Icons.dashboard),
-                  label: const Text('Entrar no Dashboard'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    textStyle: const TextStyle(fontSize: 18),
-                  ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  if (trimestresDoAno.isEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Não há trimestres cadastrados para o ano selecionado.',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                    )
+                  else
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.2,
+                          ),
+                      itemCount: trimestresDoAno.length,
+                      itemBuilder: (context, index) {
+                        final trimestre = trimestresDoAno[index];
+                        return Card(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CalendarioEnsaiosScreen(
+                                    trimestre: trimestre,
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF7e3285),
+                                    Color(0xFF9f5ea5),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_view_month,
+                                      size: 48,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Trimestre ${trimestre.numero}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
           ),
         ),

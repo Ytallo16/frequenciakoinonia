@@ -1,20 +1,199 @@
 import 'package:flutter/material.dart';
 import '../mock_data.dart';
+import '../models/evento.dart';
 import '../models/trimestre.dart';
 import 'chamada_interativa_screen.dart';
+import 'evento_detalhes_screen.dart';
 
-class CalendarioEnsaiosScreen extends StatelessWidget {
+class CalendarioEnsaiosScreen extends StatefulWidget {
   final Trimestre trimestre;
 
   const CalendarioEnsaiosScreen({super.key, required this.trimestre});
 
   @override
+  State<CalendarioEnsaiosScreen> createState() =>
+      _CalendarioEnsaiosScreenState();
+}
+
+class _CalendarioEnsaiosScreenState extends State<CalendarioEnsaiosScreen> {
+  String _formatarData(DateTime dataHora) {
+    final dia = dataHora.day.toString().padLeft(2, '0');
+    final mes = dataHora.month.toString().padLeft(2, '0');
+    final ano = dataHora.year.toString();
+    return '$dia/$mes/$ano';
+  }
+
+  String _formatarHora(DateTime dataHora) {
+    final hora = dataHora.hour.toString().padLeft(2, '0');
+    final minuto = dataHora.minute.toString().padLeft(2, '0');
+    return '$hora:$minuto';
+  }
+
+  List<Evento> _eventosDoTrimestre() {
+    final eventos =
+        mockEventos
+            .where((evento) => evento.trimestreId == widget.trimestre.id)
+            .toList()
+          ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
+    return eventos;
+  }
+
+  Future<void> _abrirModalNovoEvento() async {
+    final nomeController = TextEditingController();
+    final descricaoController = TextEditingController();
+    var dataSelecionada = DateTime.now();
+    var horaSelecionada = TimeOfDay.now();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 20,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Novo Evento',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF5d0565),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: nomeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome do evento',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.calendar_today,
+                        color: Color(0xFF7e3285),
+                      ),
+                      title: Text('Data: ${_formatarData(dataSelecionada)}'),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () async {
+                        final data = await showDatePicker(
+                          context: context,
+                          initialDate: dataSelecionada,
+                          firstDate: DateTime(widget.trimestre.anoId, 1, 1),
+                          lastDate: DateTime(widget.trimestre.anoId, 12, 31),
+                        );
+                        if (data == null) return;
+                        setModalState(() {
+                          dataSelecionada = data;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.access_time,
+                        color: Color(0xFF7e3285),
+                      ),
+                      title: Text('Hora: ${horaSelecionada.format(context)}'),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () async {
+                        final hora = await showTimePicker(
+                          context: context,
+                          initialTime: horaSelecionada,
+                        );
+                        if (hora == null) return;
+                        setModalState(() {
+                          horaSelecionada = hora;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descricaoController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Descrição (opcional)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          final nomeDigitado = nomeController.text.trim();
+                          if (nomeDigitado.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Informe o nome do evento.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          final dataHora = DateTime(
+                            dataSelecionada.year,
+                            dataSelecionada.month,
+                            dataSelecionada.day,
+                            horaSelecionada.hour,
+                            horaSelecionada.minute,
+                          );
+
+                          mockEventos.add(
+                            Evento(
+                              id: 'e${DateTime.now().microsecondsSinceEpoch}',
+                              trimestreId: widget.trimestre.id,
+                              dataHora: dataHora,
+                              nome: nomeDigitado,
+                              descricao: descricaoController.text.trim(),
+                            ),
+                          );
+
+                          if (!mounted) return;
+                          Navigator.pop(context);
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Evento cadastrado com sucesso.'),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.save),
+                        label: const Text('Salvar evento'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    nomeController.dispose();
+    descricaoController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final eventos = mockEventos.where((e) => e.trimestreId == trimestre.id).toList();
+    final eventos = _eventosDoTrimestre();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calendário - Trimestre ${trimestre.numero}'),
+        title: Text('Calendário - Trimestre ${widget.trimestre.numero}'),
         centerTitle: true,
       ),
       body: Container(
@@ -28,7 +207,8 @@ class CalendarioEnsaiosScreen extends StatelessWidget {
         child: eventos.isEmpty
             ? const Center(
                 child: Text(
-                  'Nenhum ensaio agendado',
+                  'Nenhum ensaio agendado.\nToque em + para cadastrar.',
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 18, color: Color(0xFF5d0565)),
                 ),
               )
@@ -46,7 +226,7 @@ class CalendarioEnsaiosScreen extends StatelessWidget {
                         size: 32,
                       ),
                       title: Text(
-                        '${evento.dataHora.day}/${evento.dataHora.month}/${evento.dataHora.year} - ${evento.tipo.toString().split('.').last.replaceAll('ensaio', 'Ensaio ').replaceAll('reuniao', 'Reunião')}'.replaceAll('Geral', 'Geral').replaceAll('Naipe', 'de Naipe'),
+                        evento.nome,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -54,14 +234,31 @@ class CalendarioEnsaiosScreen extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        '${evento.dataHora.hour}:${evento.dataHora.minute.toString().padLeft(2, '0')}',
+                        '${_formatarData(evento.dataHora)} • ${_formatarHora(evento.dataHora)}${evento.descricao.trim().isEmpty ? '' : '\n${evento.descricao.trim()}'}',
                         style: const TextStyle(color: Color(0xFF9f5ea5)),
+                      ),
+                      isThreeLine: evento.descricao.trim().isNotEmpty,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit, color: Color(0xFF7e3285)),
+                        tooltip: 'Editar evento',
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EventoDetalhesScreen(eventoId: evento.id),
+                            ),
+                          );
+                          if (!mounted) return;
+                          setState(() {});
+                        },
                       ),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChamadaInterativaScreen(evento: evento),
+                            builder: (context) =>
+                                ChamadaInterativaScreen(evento: evento),
                           ),
                         );
                       },
@@ -71,11 +268,7 @@ class CalendarioEnsaiosScreen extends StatelessWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Adicionar nova data - Mock')),
-          );
-        },
+        onPressed: _abrirModalNovoEvento,
         backgroundColor: const Color(0xFF9f5ea5),
         child: const Icon(Icons.add),
       ),
