@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import '../mock_data.dart';
 import '../models/evento.dart';
 import '../models/pessoa.dart';
-import '../models/trimestre.dart';
-import 'calendario_ensaios_screen.dart';
 
 class InicioScreen extends StatelessWidget {
   const InicioScreen({super.key});
@@ -53,6 +51,99 @@ class InicioScreen extends StatelessWidget {
     }).length;
   }
 
+  List<Evento> _listaEventosNoDia(DateTime dia) {
+    final eventosDoDia =
+        mockEventos.where((evento) {
+            final data = evento.dataHora;
+            return data.year == dia.year &&
+                data.month == dia.month &&
+                data.day == dia.day;
+          }).toList()
+          ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
+
+    return eventosDoDia;
+  }
+
+  Future<void> _abrirEventosDoDia(
+    BuildContext context,
+    DateTime dia,
+  ) async {
+    final eventosDoDia = _listaEventosNoDia(dia);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Eventos de ${DateFormat('dd/MM/yyyy').format(dia)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF3C2A53),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (eventosDoDia.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      'Nenhum evento neste dia.',
+                      style: TextStyle(color: Color(0xFF7E6D95)),
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.45,
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: eventosDoDia.length,
+                      separatorBuilder: (_, __) => const Divider(height: 12),
+                      itemBuilder: (context, index) {
+                        final evento = eventosDoDia[index];
+                        return ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(
+                            Icons.event_note,
+                            size: 20,
+                            color: Color(0xFF6E3C98),
+                          ),
+                          title: Text(
+                            evento.nome,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF3D2A56),
+                            ),
+                          ),
+                          subtitle: Text(
+                            DateFormat('HH:mm').format(evento.dataHora),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF7E6D95),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   int _eventosNaSemana(DateTime hoje) {
     final fimSemana = hoje.add(const Duration(days: 7));
     return mockEventos
@@ -64,33 +155,6 @@ class InicioScreen extends StatelessWidget {
         .length;
   }
 
-  Future<void> _abrirCalendarioDoEvento(
-    BuildContext context,
-    String trimestreId,
-  ) async {
-    Trimestre? trimestre;
-    for (final item in mockTrimestres) {
-      if (item.id == trimestreId) {
-        trimestre = item;
-        break;
-      }
-    }
-
-    if (trimestre == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Trimestre do evento não encontrado.')),
-      );
-      return;
-    }
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CalendarioEnsaiosScreen(trimestre: trimestre!),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final hoje = DateTime.now();
@@ -98,9 +162,6 @@ class InicioScreen extends StatelessWidget {
     final proximosEventos = eventosOrdenados
         .where((evento) => !evento.dataHora.isBefore(hoje))
         .toList();
-    final eventosEmDestaque = proximosEventos.isNotEmpty
-        ? proximosEventos.take(5).toList()
-        : eventosOrdenados.reversed.take(5).toList();
     final proximoEvento = proximosEventos.isNotEmpty
         ? proximosEventos.first
         : null;
@@ -248,6 +309,79 @@ class InicioScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             const Text(
+              'Agenda dos próximos dias',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF3C2A53),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 92,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _proximosSeteDias(hoje).length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final dia = _proximosSeteDias(hoje)[index];
+                  final qtdEventos = _eventosNoDia(dia);
+                  return Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => _abrirEventosDoDia(context, dia),
+                      child: Container(
+                        width: 78,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE7DFF2)),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _rotuloDiaSemana(dia),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF8B6AA9),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              DateFormat('dd').format(dia),
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF4A2F68),
+                              ),
+                            ),
+                            Text(
+                              qtdEventos == 0 ? '-' : '$qtdEventos',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: qtdEventos == 0
+                                    ? Colors.grey
+                                    : const Color(0xFF5E3A84),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
               'Ações rápidas',
               style: TextStyle(
                 fontSize: 18,
@@ -276,119 +410,6 @@ class InicioScreen extends StatelessWidget {
               subtitle: 'Painel com frequência e indicadores',
               onTap: () => Navigator.pushNamed(context, '/estatisticas'),
             ),
-            const SizedBox(height: 18),
-            const Text(
-              'Agenda dos próximos dias',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF3C2A53),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 84,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _proximosSeteDias(hoje).length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final dia = _proximosSeteDias(hoje)[index];
-                  final qtdEventos = _eventosNoDia(dia);
-                  return Container(
-                    width: 78,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE7DFF2)),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _rotuloDiaSemana(dia),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF8B6AA9),
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          DateFormat('dd').format(dia),
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF4A2F68),
-                          ),
-                        ),
-                        Text(
-                          qtdEventos == 0 ? '-' : '$qtdEventos',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: qtdEventos == 0
-                                ? Colors.grey
-                                : const Color(0xFF5E3A84),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Próximos eventos',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF3C2A53),
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (eventosEmDestaque.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Nenhum evento cadastrado ainda.'),
-                ),
-              )
-            else
-              ...eventosEmDestaque.map(
-                (evento) => Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEE7F7),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.event, color: Color(0xFF6E3C98)),
-                    ),
-                    title: Text(
-                      evento.nome,
-                      style: const TextStyle(
-                        color: Color(0xFF4A2F68),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      DateFormat('dd/MM/yyyy • HH:mm').format(evento.dataHora),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        _abrirCalendarioDoEvento(context, evento.trimestreId),
-                  ),
-                ),
-              ),
           ],
         ),
       ),

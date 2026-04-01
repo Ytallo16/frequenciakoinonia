@@ -185,6 +185,34 @@ final List<Evento> mockEventos = [
     nome: 'Ensaio Geral - Meio de Fev',
     descricao: 'Revisão intermediária do repertório do trimestre.',
   ),
+  Evento(
+    id: 'e4',
+    trimestreId: 't2',
+    dataHora: DateTime(2026, 4, 1, 19, 30),
+    nome: 'Ensaio de Abertura de Abril',
+    descricao: 'Primeiro ensaio da programação de abril.',
+  ),
+  Evento(
+    id: 'e5',
+    trimestreId: 't2',
+    dataHora: DateTime(2026, 4, 3, 19, 30),
+    nome: 'Ensaio de Naipe - Abril',
+    descricao: 'Ajuste de vozes para repertório do domingo.',
+  ),
+  Evento(
+    id: 'e6',
+    trimestreId: 't2',
+    dataHora: DateTime(2026, 4, 5, 8, 30),
+    nome: 'Culto de Domingo - 1ª Semana',
+    descricao: 'Ministração da primeira semana de abril.',
+  ),
+  Evento(
+    id: 'e7',
+    trimestreId: 't2',
+    dataHora: DateTime(2026, 4, 7, 19, 30),
+    nome: 'Ensaio de Revisão',
+    descricao: 'Fechamento da primeira semana de abril.',
+  ),
 ];
 
 final List<Frequencia> mockFrequencias = [

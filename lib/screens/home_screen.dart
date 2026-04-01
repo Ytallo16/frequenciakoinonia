@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../mock_data.dart';
+import '../models/trimestre.dart';
 import 'calendario_ensaios_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,11 +14,31 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<int> _anosDisponiveis;
   int? _anoSelecionado;
 
+  List<int> _gerarAnosDisponiveis() {
+    final anoAtual = DateTime.now().year;
+    final anos = <int>{...mockCiclos.map((c) => c.ano), anoAtual};
+    final ordenados = anos.toList()..sort((a, b) => b.compareTo(a));
+    return ordenados;
+  }
+
+  List<Trimestre> _trimestresDoAno(int? ano) {
+    if (ano == null) return [];
+
+    final cadastrados = mockTrimestres.where((t) => t.anoId == ano).toList()
+      ..sort((a, b) => a.numero.compareTo(b.numero));
+
+    if (cadastrados.isNotEmpty) return cadastrados;
+
+    return List.generate(
+      4,
+      (index) => Trimestre(id: 't$ano-${index + 1}', anoId: ano, numero: index + 1),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    _anosDisponiveis = mockCiclos.map((c) => c.ano).toList()
-      ..sort((a, b) => b.compareTo(a));
+    _anosDisponiveis = _gerarAnosDisponiveis();
 
     final cicloAtivo = mockCiclos.where((c) => c.ativo).toList();
     if (cicloAtivo.isNotEmpty) {
@@ -29,11 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final trimestresDoAno =
-        mockTrimestres
-            .where((trimestre) => trimestre.anoId == _anoSelecionado)
-            .toList()
-          ..sort((a, b) => a.numero.compareTo(b.numero));
+    final trimestresDoAno = _trimestresDoAno(_anoSelecionado);
 
     return Scaffold(
       appBar: AppBar(

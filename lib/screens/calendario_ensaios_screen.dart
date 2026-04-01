@@ -30,12 +30,30 @@ class _CalendarioEnsaiosScreenState extends State<CalendarioEnsaiosScreen> {
   }
 
   List<Evento> _eventosDoTrimestre() {
-    final eventos =
+    final inicioHoje = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
+    final eventosDoTrimestre =
         mockEventos
             .where((evento) => evento.trimestreId == widget.trimestre.id)
+            .toList();
+
+    final naoPassados =
+        eventosDoTrimestre
+            .where((evento) => !evento.dataHora.isBefore(inicioHoje))
             .toList()
           ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
-    return eventos;
+
+    final passados =
+        eventosDoTrimestre
+            .where((evento) => evento.dataHora.isBefore(inicioHoje))
+            .toList()
+          ..sort((a, b) => b.dataHora.compareTo(a.dataHora));
+
+    return [...naoPassados, ...passados];
   }
 
   Future<void> _abrirModalNovoEvento() async {
