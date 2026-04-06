@@ -38,7 +38,8 @@ class DashboardTrimestralScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CalendarioEnsaiosScreen(trimestre: trimestre),
+                        builder: (context) =>
+                            CalendarioEnsaiosScreen(trimestre: trimestre),
                       ),
                     );
                   },
@@ -46,7 +47,10 @@ class DashboardTrimestralScreen extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [const Color(0xFF7e3285), const Color(0xFF9f5ea5)],
+                        colors: [
+                          const Color(0xFF7e3285),
+                          const Color(0xFF9f5ea5),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

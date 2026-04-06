@@ -1,6 +1,7 @@
 enum StatusFrequencia { presenca, falta, atraso, faltaJustificada }
 
 class Frequencia {
+  final String? id;
   final String eventoId;
   final String pessoaId;
   final StatusFrequencia status;
@@ -8,6 +9,7 @@ class Frequencia {
   final String? justificativa;
 
   Frequencia({
+    this.id,
     required this.eventoId,
     required this.pessoaId,
     required this.status,

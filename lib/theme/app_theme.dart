@@ -3,26 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Paleta minimalista - tons suaves
-  static const Color primary = Color(0xFF5E35B1);      // Roxo elegante
+  static const Color primary = Color(0xFF5E35B1); // Roxo elegante
   static const Color primaryLight = Color(0xFF7E57C2);
   static const Color primaryDark = Color(0xFF4527A0);
-  
+
   // Fundo clean
   static const Color background = Color(0xFFFAFAFC);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardBorder = Color(0xFFE8E8EC);
-  
+
   // Texto
   static const Color textPrimary = Color(0xFF1A1A2E);
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color textMuted = Color(0xFF9CA3AF);
-  
+
   // Estados
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
-  
+
   // Accent suave
   static const Color accent = Color(0xFF8B5CF6);
 }
@@ -152,10 +152,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         behavior: SnackBarBehavior.floating,
       ),
-      iconTheme: const IconThemeData(
-        color: AppColors.textSecondary,
-        size: 22,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 22),
     );
   }
 }
@@ -205,12 +202,7 @@ class CleanChip extends StatelessWidget {
   final Color? color;
   final IconData? icon;
 
-  const CleanChip({
-    super.key,
-    required this.label,
-    this.color,
-    this.icon,
-  });
+  const CleanChip({super.key, required this.label, this.color, this.icon});
 
   @override
   Widget build(BuildContext context) {

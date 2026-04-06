@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import '../mock_data.dart';
 import '../models/evento.dart';
-import '../models/pessoa.dart';
 
 class InicioScreen extends StatelessWidget {
   const InicioScreen({super.key});
@@ -52,22 +51,17 @@ class InicioScreen extends StatelessWidget {
   }
 
   List<Evento> _listaEventosNoDia(DateTime dia) {
-    final eventosDoDia =
-        mockEventos.where((evento) {
-            final data = evento.dataHora;
-            return data.year == dia.year &&
-                data.month == dia.month &&
-                data.day == dia.day;
-          }).toList()
-          ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
+    final eventosDoDia = mockEventos.where((evento) {
+      final data = evento.dataHora;
+      return data.year == dia.year &&
+          data.month == dia.month &&
+          data.day == dia.day;
+    }).toList()..sort((a, b) => a.dataHora.compareTo(b.dataHora));
 
     return eventosDoDia;
   }
 
-  Future<void> _abrirEventosDoDia(
-    BuildContext context,
-    DateTime dia,
-  ) async {
+  Future<void> _abrirEventosDoDia(BuildContext context, DateTime dia) async {
     final eventosDoDia = _listaEventosNoDia(dia);
 
     await showModalBottomSheet<void>(
@@ -106,7 +100,8 @@ class InicioScreen extends StatelessWidget {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: eventosDoDia.length,
-                      separatorBuilder: (_, __) => const Divider(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 12),
                       itemBuilder: (context, index) {
                         final evento = eventosDoDia[index];
                         return ListTile(
@@ -166,9 +161,7 @@ class InicioScreen extends StatelessWidget {
         ? proximosEventos.first
         : null;
 
-    final totalCoralistas = mockPessoas
-        .where((pessoa) => pessoa.tipoPadrao == TipoPessoa.coralista)
-        .length;
+    final totalMembros = mockPessoas.length;
     final totalMusicas = mockEventos.fold<int>(
       0,
       (total, evento) => total + evento.musicas.length,
@@ -261,7 +254,7 @@ class InicioScreen extends StatelessWidget {
                     children: [
                       _InfoPill(label: 'Ano: $anoAtivoLabel'),
                       _InfoPill(label: 'Eventos: ${mockEventos.length}'),
-                      _InfoPill(label: 'Coralistas: $totalCoralistas'),
+                      _InfoPill(label: 'Membros: $totalMembros'),
                     ],
                   ),
                 ],
@@ -273,8 +266,8 @@ class InicioScreen extends StatelessWidget {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.groups_2_outlined,
-                    label: 'Coralistas',
-                    value: '$totalCoralistas',
+                    label: 'Membros',
+                    value: '$totalMembros',
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -395,6 +388,13 @@ class InicioScreen extends StatelessWidget {
               title: 'Cadastrar novo coralista',
               subtitle: 'Adicionar e editar pessoas do grupo',
               onTap: () => Navigator.pushNamed(context, '/coralistas'),
+            ),
+            const SizedBox(height: 8),
+            _QuickActionButton(
+              icon: Icons.library_music_outlined,
+              title: 'Cadastrar nova música',
+              subtitle: 'Abrir o catálogo para cadastrar músicas',
+              onTap: () => Navigator.pushNamed(context, '/catalogo-musicas'),
             ),
             const SizedBox(height: 8),
             _QuickActionButton(

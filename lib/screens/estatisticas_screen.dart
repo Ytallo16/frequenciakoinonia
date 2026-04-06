@@ -57,9 +57,13 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
   }
 
   List<Pessoa> get _coralistas {
-    var list = mockPessoas.where((p) => p.tipoPadrao == TipoPessoa.coralista).toList();
+    var list = mockPessoas
+        .where((p) => p.tipoPadrao == TipoPessoa.coralista)
+        .toList();
     if (_filtroNaipe != null) {
-      list = list.where((p) => _classifLabel(p.classificacaoVocal) == _filtroNaipe).toList();
+      list = list
+          .where((p) => _classifLabel(p.classificacaoVocal) == _filtroNaipe)
+          .toList();
     }
     return list;
   }
@@ -99,7 +103,9 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
     final result = <String, Map<String, int>>{};
     for (final naipe in ['Soprano', 'Contralto', 'Tenor', 'Baixo']) {
       final pessoas = mockPessoas.where(
-        (p) => p.tipoPadrao == TipoPessoa.coralista && _classifLabel(p.classificacaoVocal) == naipe,
+        (p) =>
+            p.tipoPadrao == TipoPessoa.coralista &&
+            _classifLabel(p.classificacaoVocal) == naipe,
       );
       int totalPresenca = 0, totalFalta = 0, totalFJ = 0, totalAll = 0;
       for (var p in pessoas) {
@@ -140,8 +146,14 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
         ),
         bottom: TabBar(
           controller: _tabController,
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-          unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 14),
+          labelStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
@@ -155,11 +167,7 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildGeralTab(),
-          _buildCoralistasTab(),
-          _buildNaipesTab(),
-        ],
+        children: [_buildGeralTab(), _buildCoralistasTab(), _buildNaipesTab()],
       ),
     );
   }
@@ -169,15 +177,27 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
   // ============================
   Widget _buildGeralTab() {
     final totalFreqs = mockFrequencias.length;
-    final presentes = mockFrequencias.where((f) => f.status == StatusFrequencia.presenca || f.status == StatusFrequencia.atraso).length;
-    final faltas = mockFrequencias.where((f) => f.status == StatusFrequencia.falta).length;
-    final fjs = mockFrequencias.where((f) => f.status == StatusFrequencia.faltaJustificada).length;
+    final presentes = mockFrequencias
+        .where(
+          (f) =>
+              f.status == StatusFrequencia.presenca ||
+              f.status == StatusFrequencia.atraso,
+        )
+        .length;
+    final faltas = mockFrequencias
+        .where((f) => f.status == StatusFrequencia.falta)
+        .length;
+    final fjs = mockFrequencias
+        .where((f) => f.status == StatusFrequencia.faltaJustificada)
+        .length;
 
     final pctPresenca = totalFreqs > 0 ? (presentes / totalFreqs * 100) : 0.0;
     final pctFalta = totalFreqs > 0 ? (faltas / totalFreqs * 100) : 0.0;
     final pctFJ = totalFreqs > 0 ? (fjs / totalFreqs * 100) : 0.0;
 
-    final coralistas = mockPessoas.where((p) => p.tipoPadrao == TipoPessoa.coralista).length;
+    final coralistas = mockPessoas
+        .where((p) => p.tipoPadrao == TipoPessoa.coralista)
+        .length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -187,17 +207,45 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
           // Summary cards
           Row(
             children: [
-              Expanded(child: _SummaryCard(label: 'Coralistas', value: '$coralistas', icon: Icons.people_outline, color: AppColors.primary)),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Coralistas',
+                  value: '$coralistas',
+                  icon: Icons.people_outline,
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Eventos', value: '${mockEventos.length}', icon: Icons.event_outlined, color: AppColors.info)),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Eventos',
+                  value: '${mockEventos.length}',
+                  icon: Icons.event_outlined,
+                  color: AppColors.info,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _SummaryCard(label: 'Presenças', value: '$presentes', icon: Icons.check_circle_outline, color: AppColors.success)),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Presenças',
+                  value: '$presentes',
+                  icon: Icons.check_circle_outline,
+                  color: AppColors.success,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _SummaryCard(label: 'Faltas', value: '$faltas', icon: Icons.cancel_outlined, color: AppColors.error)),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Faltas',
+                  value: '$faltas',
+                  icon: Icons.cancel_outlined,
+                  color: AppColors.error,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -205,7 +253,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
           // Distribuição
           Text(
             'Distribuição de Frequência',
-            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           _buildDistribuicaoChart(pctPresenca, pctFalta, pctFJ),
@@ -218,7 +270,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
           // Comparativo por naipe
           Text(
             'Presença por Naipe',
-            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           _buildNaipeBarChart(),
@@ -240,21 +296,33 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
               value: presenca,
               title: '${presenca.round()}%',
               radius: 40,
-              titleStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+              titleStyle: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             PieChartSectionData(
               color: AppColors.error,
               value: falta,
               title: '${falta.round()}%',
               radius: 40,
-              titleStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+              titleStyle: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             PieChartSectionData(
               color: AppColors.warning,
               value: fj,
               title: '${fj.round()}%',
               radius: 40,
-              titleStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+              titleStyle: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -279,12 +347,19 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
           Expanded(
             child: Text(
               label,
-              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           Text(
             '${pct.round()}%',
-            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: color),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -308,7 +383,10 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 return BarTooltipItem(
                   '${rod.toY.round()}%',
-                  GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  GoogleFonts.inter(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 );
               },
             ),
@@ -325,7 +403,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         naipes[i],
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     );
                   }
@@ -340,17 +422,28 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                 interval: 25,
                 reservedSize: 30,
                 getTitlesWidget: (value, meta) {
-                  return Text('${value.toInt()}%', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted));
+                  return Text(
+                    '${value.toInt()}%',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: AppColors.textMuted,
+                    ),
+                  );
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (value) => FlLine(color: AppColors.cardBorder, strokeWidth: 1),
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: AppColors.cardBorder, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           barGroups: naipes.asMap().entries.map((e) {
@@ -365,7 +458,9 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                   toY: pct,
                   color: color,
                   width: 24,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(6),
+                  ),
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: 100,
@@ -404,11 +499,18 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.person_off_outlined, size: 48, color: AppColors.textMuted),
+                      Icon(
+                        Icons.person_off_outlined,
+                        size: 48,
+                        color: AppColors.textMuted,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'Nenhum coralista encontrado',
-                        style: GoogleFonts.inter(fontSize: 15, color: AppColors.textMuted),
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: AppColors.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -441,8 +543,12 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
         child: Row(
           children: naipes.map((naipe) {
             final isAll = naipe == 'Todos';
-            final isSelected = isAll ? _filtroNaipe == null : _filtroNaipe == naipe;
-            final color = isAll ? AppColors.primary : (_naipeColors[naipe] ?? AppColors.primary);
+            final isSelected = isAll
+                ? _filtroNaipe == null
+                : _filtroNaipe == naipe;
+            final color = isAll
+                ? AppColors.primary
+                : (_naipeColors[naipe] ?? AppColors.primary);
 
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -454,7 +560,10 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected ? color.withAlpha(20) : AppColors.surface,
                     borderRadius: BorderRadius.circular(20),
@@ -467,7 +576,9 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                     naipe,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       color: isSelected ? color : AppColors.textSecondary,
                     ),
                   ),
@@ -530,7 +641,10 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                     ),
                     const SizedBox(height: 2),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: naipeColor.withAlpha(15),
                         borderRadius: BorderRadius.circular(6),
@@ -549,7 +663,10 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
               ),
               // Porcentagem
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _pctColor(pct).withAlpha(15),
                   borderRadius: BorderRadius.circular(20),
@@ -599,7 +716,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
       children: [
         Text(
           value,
-          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: color),
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -630,7 +751,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
         children: [
           Text(
             'Comparativo por Naipe',
-            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -665,7 +790,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                           color: color.withAlpha(20),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(Icons.group_outlined, color: color, size: 22),
+                        child: Icon(
+                          Icons.group_outlined,
+                          color: color,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -682,13 +811,19 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                             ),
                             Text(
                               '$membros membro${membros > 1 ? 's' : ''}',
-                              style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: _pctColor(pct).withAlpha(15),
                           borderRadius: BorderRadius.circular(20),
@@ -722,7 +857,11 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMiniStat('Presenças', '$presenca', AppColors.success),
+                      _buildMiniStat(
+                        'Presenças',
+                        '$presenca',
+                        AppColors.success,
+                      ),
                       _buildMiniStat('Faltas', '$falta', AppColors.error),
                       _buildMiniStat('FJ', '$fj', AppColors.warning),
                     ],
@@ -739,52 +878,65 @@ class _EstatisticasScreenState extends State<EstatisticasScreen>
                   // Members list
                   Text(
                     'Membros',
-                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...mockPessoas
-                      .where((p) =>
-                          p.tipoPadrao == TipoPessoa.coralista &&
-                          _classifLabel(p.classificacaoVocal) == naipe)
+                      .where(
+                        (p) =>
+                            p.tipoPadrao == TipoPessoa.coralista &&
+                            _classifLabel(p.classificacaoVocal) == naipe,
+                      )
                       .map((p) {
-                    final ps = _getFreqStats(p.id);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: color.withAlpha(12),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                p.nome[0],
-                                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: color),
+                        final ps = _getFreqStats(p.id);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: color.withAlpha(12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    p.nome[0],
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: color,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  p.nome,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${ps['pct']}%',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: _pctColor(ps['pct']!),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              p.nome,
-                              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
-                            ),
-                          ),
-                          Text(
-                            '${ps['pct']}%',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: _pctColor(ps['pct']!),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                        );
+                      }),
                 ],
               ),
             );

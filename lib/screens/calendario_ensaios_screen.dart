@@ -36,10 +36,9 @@ class _CalendarioEnsaiosScreenState extends State<CalendarioEnsaiosScreen> {
       DateTime.now().day,
     );
 
-    final eventosDoTrimestre =
-        mockEventos
-            .where((evento) => evento.trimestreId == widget.trimestre.id)
-            .toList();
+    final eventosDoTrimestre = mockEventos
+        .where((evento) => evento.trimestreId == widget.trimestre.id)
+        .toList();
 
     final naoPassados =
         eventosDoTrimestre
@@ -150,7 +149,7 @@ class _CalendarioEnsaiosScreenState extends State<CalendarioEnsaiosScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           final nomeDigitado = nomeController.text.trim();
                           if (nomeDigitado.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -169,17 +168,24 @@ class _CalendarioEnsaiosScreenState extends State<CalendarioEnsaiosScreen> {
                             horaSelecionada.minute,
                           );
 
-                          mockEventos.add(
-                            Evento(
-                              id: 'e${DateTime.now().microsecondsSinceEpoch}',
+                          try {
+                            await criarEvento(
                               trimestreId: widget.trimestre.id,
-                              dataHora: dataHora,
                               nome: nomeDigitado,
                               descricao: descricaoController.text.trim(),
-                            ),
-                          );
+                              dataHora: dataHora,
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao cadastrar evento: $e'),
+                              ),
+                            );
+                            return;
+                          }
 
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           Navigator.pop(context);
                           setState(() {});
                           ScaffoldMessenger.of(context).showSnackBar(

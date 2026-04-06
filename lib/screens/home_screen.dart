@@ -11,8 +11,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final List<int> _anosDisponiveis;
+  List<int> _anosDisponiveis = [];
   int? _anoSelecionado;
+  bool _carregando = true;
 
   List<int> _gerarAnosDisponiveis() {
     final anoAtual = DateTime.now().year;
@@ -31,25 +32,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return List.generate(
       4,
-      (index) => Trimestre(id: 't$ano-${index + 1}', anoId: ano, numero: index + 1),
+      (index) =>
+          Trimestre(id: 't$ano-${index + 1}', anoId: ano, numero: index + 1),
     );
   }
 
   @override
   void initState() {
     super.initState();
-    _anosDisponiveis = _gerarAnosDisponiveis();
+    _inicializar();
+  }
 
-    final cicloAtivo = mockCiclos.where((c) => c.ativo).toList();
-    if (cicloAtivo.isNotEmpty) {
-      _anoSelecionado = cicloAtivo.first.ano;
-    } else if (_anosDisponiveis.isNotEmpty) {
-      _anoSelecionado = _anosDisponiveis.first;
+  Future<void> _inicializar() async {
+    try {
+      await ensureBackendDataLoaded();
+      await garantirCicloAnoAtual();
+      _anosDisponiveis = _gerarAnosDisponiveis();
+
+      final cicloAtivo = mockCiclos.where((c) => c.ativo).toList();
+      if (cicloAtivo.isNotEmpty) {
+        _anoSelecionado = cicloAtivo.first.ano;
+      } else if (_anosDisponiveis.isNotEmpty) {
+        _anoSelecionado = _anosDisponiveis.first;
+      }
+    } catch (_) {
+      _anosDisponiveis = _gerarAnosDisponiveis();
+      if (_anosDisponiveis.isNotEmpty) {
+        _anoSelecionado = _anosDisponiveis.first;
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_carregando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final trimestresDoAno = _trimestresDoAno(_anoSelecionado);
 
     return Scaffold(
@@ -61,7 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: 'Voltar ao início',
             icon: const Icon(Icons.home_outlined),
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/inicio',
+                (route) => false,
+              );
             },
           ),
         ],
@@ -110,6 +139,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/estatisticas');
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.library_music,
+                  color: Color(0xFF9f5ea5),
+                ),
+                title: const Text(
+                  'Catálogo de Músicas',
+                  style: TextStyle(color: Color(0xFF5d0565)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/catalogo-musicas');
                 },
               ),
             ],

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../mock_data.dart';
 import '../models/evento.dart';
+import '../models/frequencia.dart';
 import '../models/matricula.dart';
+import '../models/pessoa.dart';
 import 'detalhes_pessoa_screen.dart';
 
 class ChamadaInterativaScreen extends StatefulWidget {
@@ -10,24 +13,137 @@ class ChamadaInterativaScreen extends StatefulWidget {
   const ChamadaInterativaScreen({super.key, required this.evento});
 
   @override
-  _ChamadaInterativaScreenState createState() => _ChamadaInterativaScreenState();
+  State<ChamadaInterativaScreen> createState() =>
+      _ChamadaInterativaScreenState();
 }
 
 class _ChamadaInterativaScreenState extends State<ChamadaInterativaScreen> {
-  Map<String, String> frequencias = {};
+  final Map<String, String> frequencias = {};
+
+  bool _carregando = true;
+  bool _salvando = false;
+  List<Matricula> _matriculas = const [];
+  List<Pessoa> _pessoasMatriculadas = const [];
 
   @override
   void initState() {
     super.initState();
-    for (var freq in mockFrequencias.where((f) => f.eventoId == widget.evento.id)) {
-      frequencias[freq.pessoaId] = freq.status.toString().split('.').last;
+    _carregarDados();
+  }
+
+  Future<void> _carregarDados() async {
+    try {
+      await ensureBackendDataLoaded();
+      final matriculas = mockMatriculas
+          .where((m) => m.trimestreId == widget.evento.trimestreId)
+          .toList();
+      final pessoasById = {for (final pessoa in mockPessoas) pessoa.id: pessoa};
+
+      final pessoasMatriculadas = <Pessoa>[];
+      for (final matricula in matriculas) {
+        final pessoa = pessoasById[matricula.pessoaId];
+        if (pessoa != null) {
+          pessoasMatriculadas.add(pessoa);
+        }
+      }
+
+      frequencias.clear();
+      for (final freq in mockFrequencias.where(
+        (f) => f.eventoId == widget.evento.id,
+      )) {
+        switch (freq.status) {
+          case StatusFrequencia.presenca:
+            frequencias[freq.pessoaId] = 'presenca';
+            break;
+          case StatusFrequencia.falta:
+            frequencias[freq.pessoaId] = 'falta';
+            break;
+          case StatusFrequencia.atraso:
+            frequencias[freq.pessoaId] = 'atraso';
+            break;
+          case StatusFrequencia.faltaJustificada:
+            frequencias[freq.pessoaId] = 'falta_justificada';
+            break;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _matriculas = matriculas;
+        _pessoasMatriculadas = pessoasMatriculadas;
+        _carregando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _carregando = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao carregar chamada: $e')));
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'presenca':
+        return 'Presente';
+      case 'falta':
+        return 'Faltou';
+      case 'falta_justificada':
+        return 'Justificado';
+      case 'atraso':
+        return 'Atrasado';
+      default:
+        return 'Não marcado';
+    }
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'presenca':
+        return Colors.green;
+      case 'falta':
+        return Colors.red;
+      case 'falta_justificada':
+        return Colors.orange;
+      case 'atraso':
+        return Colors.yellow.shade700;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Future<void> _salvarChamada() async {
+    setState(() {
+      _salvando = true;
+    });
+
+    try {
+      await salvarFrequenciasEvento(widget.evento.id, frequencias);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chamada salva com sucesso.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar chamada: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _salvando = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final matriculas = mockMatriculas.where((m) => m.trimestreId == widget.evento.trimestreId).toList();
-    final pessoasMatriculadas = matriculas.map((m) => mockPessoas.firstWhere((p) => p.id == m.pessoaId)).toList();
+    if (_carregando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -44,17 +160,20 @@ class _ChamadaInterativaScreenState extends State<ChamadaInterativaScreen> {
         ),
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: pessoasMatriculadas.length,
+          itemCount: _pessoasMatriculadas.length,
           itemBuilder: (context, index) {
-            final pessoa = pessoasMatriculadas[index];
-            final matricula = matriculas.firstWhere((m) => m.pessoaId == pessoa.id);
-            final status = frequencias[pessoa.id] ?? 'não marcado';
+            final pessoa = _pessoasMatriculadas[index];
+            final matricula = _matriculas.firstWhere(
+              (m) => m.pessoaId == pessoa.id,
+            );
+            final status = frequencias[pessoa.id] ?? 'nao_marcado';
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: matricula.funcaoNoTrimestre == FuncaoTrimestre.coralista
+                  backgroundColor:
+                      matricula.funcaoNoTrimestre == FuncaoTrimestre.coralista
                       ? const Color(0xFF9f5ea5)
                       : const Color(0xFF7e3285),
                   child: Icon(
@@ -81,18 +200,10 @@ class _ChamadaInterativaScreenState extends State<ChamadaInterativaScreen> {
                     const SizedBox(height: 4),
                     Chip(
                       label: Text(
-                        status == 'presenca' ? 'Presente' : status == 'falta' ? 'Faltou' : status == 'justificativa' ? 'Justificado' : status == 'atraso' ? 'Atrasado' : 'Não Marcado',
+                        _statusLabel(status),
                         style: const TextStyle(color: Colors.white),
                       ),
-                      backgroundColor: status == 'presenca'
-                          ? Colors.green
-                          : status == 'falta'
-                              ? Colors.red
-                              : status == 'justificativa'
-                                  ? Colors.orange
-                                  : status == 'atraso'
-                                      ? Colors.yellow[700]
-                                      : Colors.grey,
+                      backgroundColor: _statusColor(status),
                     ),
                   ],
                 ),
@@ -100,7 +211,8 @@ class _ChamadaInterativaScreenState extends State<ChamadaInterativaScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DetalhesPessoaScreen(pessoa: pessoa),
+                      builder: (context) =>
+                          DetalhesPessoaScreen(pessoa: pessoa),
                     ),
                   );
                 },
@@ -130,14 +242,20 @@ class _ChamadaInterativaScreenState extends State<ChamadaInterativaScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gerenciar Pessoas - Mock')),
-          );
-        },
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _salvando ? null : _salvarChamada,
         backgroundColor: const Color(0xFF9f5ea5),
-        child: const Icon(Icons.settings),
+        icon: _salvando
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.save),
+        label: Text(_salvando ? 'Salvando...' : 'Salvar chamada'),
       ),
     );
   }

@@ -3,9 +3,5 @@ class Trimestre {
   final int anoId;
   final int numero;
 
-  Trimestre({
-    required this.id,
-    required this.anoId,
-    required this.numero,
-  });
+  Trimestre({required this.id, required this.anoId, required this.numero});
 }

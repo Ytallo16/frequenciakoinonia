@@ -8,7 +8,7 @@ class DetalhesPessoaScreen extends StatefulWidget {
   const DetalhesPessoaScreen({super.key, required this.pessoa});
 
   @override
-  _DetalhesPessoaScreenState createState() => _DetalhesPessoaScreenState();
+  State<DetalhesPessoaScreen> createState() => _DetalhesPessoaScreenState();
 }
 
 class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
@@ -46,27 +46,43 @@ class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
                     children: [
                       Text(
                         'Nome: ${widget.pessoa.nome}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF5d0565)),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5d0565),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Data de Nascimento: ${widget.pessoa.dataNascimento.toLocal().toString().split(' ')[0]}',
-                        style: const TextStyle(fontSize: 16, color: Color(0xFF5d0565)),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF5d0565),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Telefone: ${widget.pessoa.telefone}',
-                        style: const TextStyle(fontSize: 16, color: Color(0xFF5d0565)),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF5d0565),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Classificação Vocal: ${widget.pessoa.classificacaoVocal.toString().split('.').last}',
-                        style: const TextStyle(fontSize: 16, color: Color(0xFF5d0565)),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF5d0565),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Tipo Padrão: ${widget.pessoa.tipoPadrao.toString().split('.').last}',
-                        style: const TextStyle(fontSize: 16, color: Color(0xFF5d0565)),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF5d0565),
+                        ),
                       ),
                     ],
                   ),
@@ -75,7 +91,11 @@ class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
               const SizedBox(height: 20),
               const Text(
                 'Gráfico de Presença',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF5d0565)),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF5d0565),
+                ),
               ),
               const SizedBox(height: 10),
               Card(
@@ -91,14 +111,22 @@ class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
                             title: '$presenca\nPresente',
                             color: const Color(0xFF9f5ea5),
                             radius: 60,
-                            titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                           PieChartSectionData(
                             value: falta.toDouble(),
                             title: '$falta\nFaltou',
                             color: const Color(0xFF47034e),
                             radius: 60,
-                            titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -117,7 +145,9 @@ class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isTrimestre ? const Color(0xFF9f5ea5) : Colors.grey,
+                        backgroundColor: isTrimestre
+                            ? const Color(0xFF9f5ea5)
+                            : Colors.grey,
                       ),
                       child: const Text('Dados do Trimestre'),
                     ),
@@ -131,7 +161,9 @@ class _DetalhesPessoaScreenState extends State<DetalhesPessoaScreen> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: !isTrimestre ? const Color(0xFF9f5ea5) : Colors.grey,
+                        backgroundColor: !isTrimestre
+                            ? const Color(0xFF9f5ea5)
+                            : Colors.grey,
                       ),
                       child: const Text('Acumulado do Ano'),
                     ),

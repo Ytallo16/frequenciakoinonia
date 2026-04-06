@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
@@ -16,17 +18,33 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _telefoneController = TextEditingController();
+  final _buscaController = TextEditingController();
   final _telefoneMask = MaskTextInputFormatter(
     mask: '(##) #####-####',
     filter: {"#": RegExp(r'[0-9]')},
     type: MaskAutoCompletionType.lazy,
   );
+  Timer? _buscaDebounce;
+  String _termoBusca = '';
+  TipoPessoa? _filtroTipo;
+  ClassificacaoVocal? _filtroVoz;
+  bool _mostrarFiltros = false;
   DateTime? _dataNascimento;
   ClassificacaoVocal _vozSelecionada = ClassificacaoVocal.soprano;
   TipoPessoa _tipoSelecionado = TipoPessoa.coralista;
 
   @override
+  void initState() {
+    super.initState();
+    _buscaController.addListener(_onBuscaChanged);
+  }
+
+  @override
   void dispose() {
+    _buscaDebounce?.cancel();
+    _buscaController
+      ..removeListener(_onBuscaChanged)
+      ..dispose();
     _nomeController.dispose();
     _telefoneController.dispose();
     super.dispose();
@@ -82,6 +100,18 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
       case ClassificacaoVocal.na:
         return AppColors.textSecondary;
     }
+  }
+
+  void _onBuscaChanged() {
+    _buscaDebounce?.cancel();
+    _buscaDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      final valor = _buscaController.text.trim().toLowerCase();
+      if (valor == _termoBusca) return;
+      setState(() {
+        _termoBusca = valor;
+      });
+    });
   }
 
   void _showAddOrEditCoralista({Pessoa? pessoaExistente}) {
@@ -153,7 +183,9 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                     label: 'Nome completo',
                     icon: Icons.person_outline,
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Informe o nome';
+                      if (value == null || value.isEmpty) {
+                        return 'Informe o nome';
+                      }
                       return null;
                     },
                   ),
@@ -174,7 +206,9 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.light(primary: AppColors.primary),
+                              colorScheme: const ColorScheme.light(
+                                primary: AppColors.primary,
+                              ),
                             ),
                             child: child!,
                           );
@@ -193,7 +227,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.cake_outlined, color: AppColors.textSecondary, size: 22),
+                          Icon(
+                            Icons.cake_outlined,
+                            color: AppColors.textSecondary,
+                            size: 22,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -202,7 +240,9 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                                   : 'Data de nascimento',
                               style: GoogleFonts.inter(
                                 fontSize: 15,
-                                color: _dataNascimento != null ? AppColors.textPrimary : AppColors.textMuted,
+                                color: _dataNascimento != null
+                                    ? AppColors.textPrimary
+                                    : AppColors.textMuted,
                               ),
                             ),
                           ),
@@ -216,7 +256,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                   // Voz
                   Text(
                     'Voz',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -224,12 +268,15 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                     runSpacing: 8,
                     children: ClassificacaoVocal.values
                         .where((v) => v != ClassificacaoVocal.na)
-                        .map((voz) => _buildChip(
-                              label: _formatVoz(voz),
-                              isSelected: _vozSelecionada == voz,
-                              onTap: () => setModalState(() => _vozSelecionada = voz),
-                              color: _getVozColor(voz),
-                            ))
+                        .map(
+                          (voz) => _buildChip(
+                            label: _formatVoz(voz),
+                            isSelected: _vozSelecionada == voz,
+                            onTap: () =>
+                                setModalState(() => _vozSelecionada = voz),
+                            color: _getVozColor(voz),
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 20),
@@ -237,18 +284,27 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                   // Tipo
                   Text(
                     'Tipo',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: TipoPessoa.values.map((tipo) => _buildChip(
-                          label: _formatTipo(tipo),
-                          isSelected: _tipoSelecionado == tipo,
-                          onTap: () => setModalState(() => _tipoSelecionado = tipo),
-                          color: _getTipoColor(tipo),
-                        )).toList(),
+                    children: TipoPessoa.values
+                        .map(
+                          (tipo) => _buildChip(
+                            label: _formatTipo(tipo),
+                            isSelected: _tipoSelecionado == tipo,
+                            onTap: () =>
+                                setModalState(() => _tipoSelecionado = tipo),
+                            color: _getTipoColor(tipo),
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: 28),
 
@@ -256,13 +312,17 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => _saveCoralista(pessoaExistente: pessoaExistente),
+                      onPressed: () =>
+                          _saveCoralista(pessoaExistente: pessoaExistente),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: Text(
                         isEdit ? 'Salvar Alterações' : 'Salvar Coralista',
-                        style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -329,7 +389,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
         hintText: '(00) 00000-0000',
         labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
         hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
-        prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.textSecondary, size: 22),
+        prefixIcon: const Icon(
+          Icons.phone_outlined,
+          color: AppColors.textSecondary,
+          size: 22,
+        ),
         filled: true,
         fillColor: AppColors.background,
         border: OutlineInputBorder(
@@ -384,7 +448,7 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
     );
   }
 
-  void _saveCoralista({Pessoa? pessoaExistente}) {
+  Future<void> _saveCoralista({Pessoa? pessoaExistente}) async {
     if (_formKey.currentState!.validate()) {
       if (_dataNascimento == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -393,43 +457,46 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
         return;
       }
 
-      if (pessoaExistente != null) {
-        // Editar
-        final idx = mockPessoas.indexWhere((p) => p.id == pessoaExistente.id);
-        if (idx != -1) {
-          setState(() {
-            mockPessoas[idx] = Pessoa(
-              id: pessoaExistente.id,
-              nome: _nomeController.text,
-              dataNascimento: _dataNascimento!,
-              telefone: _telefoneController.text,
-              classificacaoVocal: _vozSelecionada,
-              tipoPadrao: _tipoSelecionado,
-              fotoUrl: pessoaExistente.fotoUrl,
-            );
-          });
+      try {
+        if (pessoaExistente != null) {
+          final pessoaAtualizada = Pessoa(
+            id: pessoaExistente.id,
+            nome: _nomeController.text.trim(),
+            dataNascimento: _dataNascimento!,
+            telefone: _telefoneController.text.trim(),
+            classificacaoVocal: _vozSelecionada,
+            tipoPadrao: _tipoSelecionado,
+            fotoUrl: pessoaExistente.fotoUrl,
+          );
+          await atualizarPessoa(pessoaAtualizada);
+          if (!mounted) return;
+          setState(() {});
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${_nomeController.text} atualizado!')),
+          );
+        } else {
+          final novaPessoa = await criarPessoa(
+            nome: _nomeController.text.trim(),
+            dataNascimento: _dataNascimento!,
+            telefone: _telefoneController.text.trim(),
+            classificacaoVocal: _vozSelecionada,
+            tipoPadrao: _tipoSelecionado,
+          );
+          if (!mounted) return;
+          setState(() {});
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${novaPessoa.nome} adicionado com sucesso!'),
+            ),
+          );
         }
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_nomeController.text} atualizado!')),
-        );
-      } else {
-        // Criar
-        final novaPessoa = Pessoa(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          nome: _nomeController.text,
-          dataNascimento: _dataNascimento!,
-          telefone: _telefoneController.text,
-          classificacaoVocal: _vozSelecionada,
-          tipoPadrao: _tipoSelecionado,
-        );
-        setState(() {
-          mockPessoas.add(novaPessoa);
-        });
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${novaPessoa.nome} adicionado com sucesso!')),
-        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao salvar coralista: $e')));
       }
     }
   }
@@ -440,7 +507,13 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Excluir Coralista', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        title: Text(
+          'Excluir Coralista',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
         content: Text(
           'Tem certeza que deseja excluir "${pessoa.nome}"?\n\nTodos os registros de frequência dele serão removidos.',
           style: GoogleFonts.inter(color: AppColors.textSecondary),
@@ -448,29 +521,62 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                mockPessoas.removeWhere((p) => p.id == pessoa.id);
-                mockFrequencias.removeWhere((f) => f.pessoaId == pessoa.id);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${pessoa.nome} excluído!')),
-              );
+            onPressed: () async {
+              try {
+                await excluirPessoa(pessoa.id);
+                if (!context.mounted) return;
+                setState(() {});
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${pessoa.nome} excluído!')),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Erro ao excluir coralista: $e')),
+                );
+              }
             },
-            child: Text('Excluir', style: GoogleFonts.inter(color: AppColors.error, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Excluir',
+              style: GoogleFonts.inter(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  List<Pessoa> _filtrarCoralistas(List<Pessoa> pessoas) {
+    return pessoas.where((pessoa) {
+      if (_filtroTipo != null && pessoa.tipoPadrao != _filtroTipo) {
+        return false;
+      }
+      if (_filtroVoz != null && pessoa.classificacaoVocal != _filtroVoz) {
+        return false;
+      }
+      if (_termoBusca.isEmpty) {
+        return true;
+      }
+      return pessoa.nome.toLowerCase().contains(_termoBusca);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final coralistas = mockPessoas.toList();
+    final todosCoralistas = [...mockPessoas]
+      ..sort((a, b) => a.nome.toLowerCase().compareTo(b.nome.toLowerCase()));
+    final coralistas = _filtrarCoralistas(todosCoralistas);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -485,15 +591,20 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
           style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
       ),
-      body: coralistas.isEmpty
+      body: todosCoralistas.isEmpty
           ? _buildEmptyState()
-          : ListView.builder(
+          : ListView(
               padding: const EdgeInsets.all(20),
-              itemCount: coralistas.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) return _buildHeader(coralistas.length);
-                return _buildCoralistaItem(coralistas[index - 1]);
-              },
+              children: [
+                _buildHeader(
+                  exibidos: coralistas.length,
+                  total: todosCoralistas.length,
+                ),
+                _buildFiltros(),
+                if (coralistas.isEmpty) _buildSemResultados(),
+                ...coralistas.map(_buildCoralistaItem),
+                const SizedBox(height: 80),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddOrEditCoralista(),
@@ -502,16 +613,253 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
     );
   }
 
-  Widget _buildHeader(int count) {
+  Widget _buildHeader({required int exibidos, required int total}) {
+    final textoContagem = exibidos == total
+        ? '$total cadastrados'
+        : '$exibidos de $total exibidos';
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Membros do Coral', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(
+            'Membros do Coral',
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text('$count coralistas cadastrados', style: GoogleFonts.inter(fontSize: 15, color: AppColors.textSecondary)),
+          Text(
+            textoContagem,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFiltros() {
+    final temFiltrosAtivos = _filtroTipo != null || _filtroVoz != null;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _buscaController,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              labelText: 'Buscar coralista por nome',
+              labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.textSecondary,
+              ),
+              suffixIcon: _buscaController.text.trim().isEmpty
+                  ? null
+                  : IconButton(
+                      onPressed: () {
+                        _buscaController.clear();
+                        _buscaDebounce?.cancel();
+                        setState(() {
+                          _termoBusca = '';
+                        });
+                      },
+                      icon: const Icon(Icons.clear),
+                    ),
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.cardBorder),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.cardBorder),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  setState(() {
+                    _mostrarFiltros = !_mostrarFiltros;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _mostrarFiltros
+                            ? Icons.check_box_outlined
+                            : Icons.check_box_outline_blank,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Filtros',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (temFiltrosAtivos)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _filtroTipo = null;
+                      _filtroVoz = null;
+                    });
+                  },
+                  child: const Text('Limpar'),
+                ),
+            ],
+          ),
+          if (_mostrarFiltros) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Categoria',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildFiltroCheckbox(
+                  label: 'Todas',
+                  checked: _filtroTipo == null,
+                  onChanged: (value) {
+                    if (!value) return;
+                    setState(() => _filtroTipo = null);
+                  },
+                ),
+                ...TipoPessoa.values.map(
+                  (tipo) => _buildFiltroCheckbox(
+                    label: _formatTipo(tipo),
+                    checked: _filtroTipo == tipo,
+                    onChanged: (value) {
+                      setState(() {
+                        _filtroTipo = value ? tipo : null;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Naipe (tipo de voz)',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildFiltroCheckbox(
+                  label: 'Todos',
+                  checked: _filtroVoz == null,
+                  onChanged: (value) {
+                    if (!value) return;
+                    setState(() => _filtroVoz = null);
+                  },
+                ),
+                ...ClassificacaoVocal.values
+                    .where((voz) => voz != ClassificacaoVocal.na)
+                    .map(
+                      (voz) => _buildFiltroCheckbox(
+                        label: _formatVoz(voz),
+                        checked: _filtroVoz == voz,
+                        onChanged: (value) {
+                          setState(() {
+                            _filtroVoz = value ? voz : null;
+                          });
+                        },
+                      ),
+                    ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFiltroCheckbox({
+    required String label,
+    required bool checked,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => onChanged(!checked),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: checked ? AppColors.primary.withAlpha(12) : AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: checked
+                ? AppColors.primary.withAlpha(80)
+                : AppColors.cardBorder,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Checkbox(
+              value: checked,
+              onChanged: (value) => onChanged(value ?? false),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -523,10 +871,39 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
         children: [
           Icon(Icons.people_outline, size: 64, color: AppColors.textMuted),
           const SizedBox(height: 16),
-          Text('Nenhum coralista', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(
+            'Nenhum coralista',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text('Adicione coralistas usando o botão +', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+          Text(
+            'Adicione coralistas usando o botão +',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSemResultados() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Text(
+        'Nenhum coralista encontrado com os filtros atuais.',
+        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
       ),
     );
   }
@@ -557,7 +934,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
               child: Center(
                 child: Text(
                   pessoa.nome.isNotEmpty ? pessoa.nome[0].toUpperCase() : '?',
-                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: vozColor),
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: vozColor,
+                  ),
                 ),
               ),
             ),
@@ -570,32 +951,50 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                 children: [
                   Text(
                     pessoa.nome,
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: tipoColor.withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           _formatTipo(pessoa.tipoPadrao),
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: tipoColor),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: tipoColor,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: vozColor.withAlpha(15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           _formatVoz(pessoa.classificacaoVocal),
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: vozColor),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: vozColor,
+                          ),
                         ),
                       ),
                     ],
@@ -614,7 +1013,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                   color: AppColors.info.withAlpha(12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.edit_outlined, size: 16, color: AppColors.info),
+                child: Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: AppColors.info,
+                ),
               ),
             ),
             const SizedBox(width: 6),
@@ -628,7 +1031,11 @@ class _CoralistasScreenState extends State<CoralistasScreen> {
                   color: AppColors.error.withAlpha(12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+                child: Icon(
+                  Icons.delete_outline,
+                  size: 16,
+                  color: AppColors.error,
+                ),
               ),
             ),
           ],
