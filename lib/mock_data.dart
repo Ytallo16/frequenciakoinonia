@@ -39,13 +39,16 @@ String _baseUrl() {
   if (fromEnv.isNotEmpty) {
     return fromEnv;
   }
+  if (kReleaseMode) {
+    return 'https://api.admoving.addirceu.com.br';
+  }
   if (kIsWeb) {
-    return 'http://localhost:8000';
+    return 'http://localhost:8001';
   }
   if (defaultTargetPlatform == TargetPlatform.android) {
-    return 'http://10.0.2.2:8000';
+    return 'http://10.0.2.2:8001';
   }
-  return 'http://localhost:8000';
+  return 'http://localhost:8001';
 }
 
 Uri _uri(String path, {Map<String, String>? query}) {

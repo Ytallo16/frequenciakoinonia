@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
       future: _bootstrapFuture,
       builder: (context, snapshot) {
         return MaterialApp(
-          title: 'Frequência Koinonia',
+          title: 'Koinonia',
           theme: AppTheme.lightTheme,
           home: snapshot.connectionState != ConnectionState.done
               ? const _BootstrapLoadingScreen()

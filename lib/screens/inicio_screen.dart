@@ -181,7 +181,7 @@ class InicioScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Frequência Koinonia'),
+        title: const Text('Koinonia'),
         actions: [
           IconButton(
             tooltip: 'Ver eventos por trimestre',
