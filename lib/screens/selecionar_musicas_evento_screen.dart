@@ -18,11 +18,19 @@ class _SelecionarMusicasEventoScreenState
   bool _carregando = true;
   bool _salvando = false;
   final Set<String> _selecionadas = {};
+  final TextEditingController _buscaController = TextEditingController();
+  String _termoBusca = '';
 
   @override
   void initState() {
     super.initState();
     _carregar();
+  }
+
+  @override
+  void dispose() {
+    _buscaController.dispose();
+    super.dispose();
   }
 
   Future<void> _carregar() async {
@@ -76,58 +84,103 @@ class _SelecionarMusicasEventoScreenState
     }
   }
 
+  void _aplicarBusca() {
+    setState(() {
+      _termoBusca = _buscaController.text.trim().toLowerCase();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_carregando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final musicas = [...mockCatalogoMusicas]
+    final todasMusicas = [...mockCatalogoMusicas]
       ..sort((a, b) => a.nome.toLowerCase().compareTo(b.nome.toLowerCase()));
+    final musicas = todasMusicas.where((musica) {
+      if (_termoBusca.isEmpty) return true;
+      return musica.nome.toLowerCase().contains(_termoBusca);
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Selecionar Músicas')),
-      body: musicas.isEmpty
+      body: todasMusicas.isEmpty
           ? const Center(
               child: Text(
                 'Nenhuma música ativa no catálogo.\nCadastre no módulo de catálogo.',
                 textAlign: TextAlign.center,
               ),
             )
-          : ListView.builder(
+          : Padding(
               padding: const EdgeInsets.all(12),
-              itemCount: musicas.length,
-              itemBuilder: (context, index) {
-                final musica = musicas[index];
-                final marcada = _selecionadas.contains(musica.id);
-                return Card(
-                  child: CheckboxListTile(
-                    value: marcada,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == true) {
-                          _selecionadas.add(musica.id);
-                        } else {
-                          _selecionadas.remove(musica.id);
-                        }
-                      });
-                    },
-                    title: Text(musica.nome),
-                    subtitle: _subtitulo(musica),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _buscaController,
+                          onSubmitted: (_) => _aplicarBusca(),
+                          textInputAction: TextInputAction.search,
+                          decoration: const InputDecoration(
+                            hintText: 'Buscar música por nome',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _aplicarBusca,
+                        icon: const Icon(Icons.search),
+                        label: const Text('Buscar'),
+                      ),
+                    ],
                   ),
-                );
-              },
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: musicas.isEmpty
+                        ? const Center(
+                            child: Text('Nenhuma música encontrada na busca.'),
+                          )
+                        : ListView.builder(
+                            itemCount: musicas.length,
+                            itemBuilder: (context, index) {
+                              final musica = musicas[index];
+                              final marcada = _selecionadas.contains(musica.id);
+                              return Card(
+                                child: CheckboxListTile(
+                                  value: marcada,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        _selecionadas.add(musica.id);
+                                      } else {
+                                        _selecionadas.remove(musica.id);
+                                      }
+                                    });
+                                  },
+                                  title: Text(musica.nome),
+                                  subtitle: _subtitulo(musica),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _salvando ? null : _confirmarSelecao,
-        icon: _salvando
+        tooltip: 'OK',
+        child: _salvando
             ? const SizedBox(
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.playlist_add_check),
-        label: Text(_salvando ? 'Salvando...' : 'Adicionar selecionadas'),
+            : const Icon(Icons.check),
       ),
     );
   }

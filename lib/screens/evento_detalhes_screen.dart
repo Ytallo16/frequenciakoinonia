@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../mock_data.dart';
 import '../models/evento.dart';
 import '../models/musica.dart';
-import '../models/pessoa.dart';
 import 'selecionar_musicas_evento_screen.dart';
 
 class EventoDetalhesScreen extends StatefulWidget {
@@ -207,13 +206,6 @@ class _EventoDetalhesScreenState extends State<EventoDetalhesScreen> {
     _atualizarEvento(_evento.copyWith(musicas: musicas));
   }
 
-  void _atualizarNaipe(int musicaIndex, String naipe, String novoNome) {
-    final musica = _evento.musicas[musicaIndex];
-    final novosNaipes = Map<String, String>.from(musica.naipes);
-    novosNaipes[naipe] = novoNome;
-    _atualizarMusica(musicaIndex, musica.copyWith(naipes: novosNaipes));
-  }
-
   String _nomeMusicaOuFallback(String nome, int index) {
     final trimmed = nome.trim();
     if (trimmed.isEmpty) {
@@ -266,14 +258,7 @@ class _EventoDetalhesScreenState extends State<EventoDetalhesScreen> {
           );
         }
 
-        final musicaComEscalas = persistida.copyWith(
-          naipes: musicaComNome.naipes,
-        );
-        final escalasAtualizadas = await substituirEscalasMusica(
-          eventoId: _evento.id,
-          musica: musicaComEscalas,
-        );
-        musicasPersistidas.add(escalasAtualizadas);
+        musicasPersistidas.add(persistida);
       }
 
       if (!mounted) return;
@@ -299,91 +284,6 @@ class _EventoDetalhesScreenState extends State<EventoDetalhesScreen> {
         });
       }
     }
-  }
-
-  ClassificacaoVocal? _classificacaoPorNaipe(String naipe) {
-    switch (naipe) {
-      case 'Soprano':
-        return ClassificacaoVocal.soprano;
-      case 'Contralto':
-        return ClassificacaoVocal.contralto;
-      case 'Tenor':
-        return ClassificacaoVocal.tenor;
-      case 'Baixo':
-        return ClassificacaoVocal.baixo;
-      default:
-        return null;
-    }
-  }
-
-  List<String> _nomesPorNaipe(String naipe) {
-    final classificacao = _classificacaoPorNaipe(naipe);
-    if (classificacao == null) return const [];
-
-    final nomes =
-        mockPessoas
-            .where((pessoa) => pessoa.classificacaoVocal == classificacao)
-            .map((pessoa) => pessoa.nome)
-            .toSet()
-            .toList()
-          ..sort();
-    return nomes;
-  }
-
-  Widget _buildNaipeDropdown({
-    required int musicaIndex,
-    required String naipe,
-    required String valorSelecionado,
-  }) {
-    final nomesDisponiveis = _nomesPorNaipe(naipe);
-    final opcoes = <String>{'', ...nomesDisponiveis};
-    if (valorSelecionado.isNotEmpty) {
-      opcoes.add(valorSelecionado);
-    }
-    final opcoesOrdenadas = opcoes.toList()
-      ..sort((a, b) {
-        if (a.isEmpty) return -1;
-        if (b.isEmpty) return 1;
-        return a.compareTo(b);
-      });
-
-    final valorValido = opcoesOrdenadas.contains(valorSelecionado)
-        ? valorSelecionado
-        : '';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          key: ValueKey('m$musicaIndex-$naipe-$valorValido'),
-          initialValue: valorValido,
-          decoration: InputDecoration(
-            labelText: naipe,
-            border: const OutlineInputBorder(),
-          ),
-          items: opcoesOrdenadas
-              .map(
-                (nome) => DropdownMenuItem<String>(
-                  value: nome,
-                  child: Text(nome.isEmpty ? 'Não escalado' : nome),
-                ),
-              )
-              .toList(),
-          onChanged: (novoNome) {
-            if (novoNome == null) return;
-            _atualizarNaipe(musicaIndex, naipe, novoNome);
-          },
-        ),
-        if (nomesDisponiveis.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              'Sem pessoas cadastradas para $naipe.',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ),
-      ],
-    );
   }
 
   @override
@@ -550,7 +450,7 @@ class _EventoDetalhesScreenState extends State<EventoDetalhesScreen> {
                       children: [
                         const Expanded(
                           child: Text(
-                            'Músicas e Escala de Naipes',
+                            'Músicas do Evento',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -672,19 +572,6 @@ class _EventoDetalhesScreenState extends State<EventoDetalhesScreen> {
                                   );
                                 },
                               ),
-                              const SizedBox(height: 12),
-                              ...Musica.todosNaipes.map((naipe) {
-                                final valorSelecionado =
-                                    musica.naipes[naipe] ?? '';
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: _buildNaipeDropdown(
-                                    musicaIndex: musicaIndex,
-                                    naipe: naipe,
-                                    valorSelecionado: valorSelecionado,
-                                  ),
-                                );
-                              }),
                             ],
                           ),
                         ),
