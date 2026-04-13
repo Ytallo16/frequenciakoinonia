@@ -108,16 +108,52 @@ class _HomeScreenState extends State<HomeScreen> {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: const Center(
-                  child: Text(
-                    'Acesso Rápido',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/icons/app_icon.png',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      ),
                     ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Acesso Rápido',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
                   ),
                 ),
+                title: const Text(
+                  'Início',
+                  style: TextStyle(color: Color(0xFF5d0565)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/inicio',
+                    (route) => false,
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.person_add, color: Color(0xFF9f5ea5)),

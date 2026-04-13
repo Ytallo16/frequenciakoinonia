@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'models/ciclo.dart';
@@ -39,16 +38,7 @@ String _baseUrl() {
   if (fromEnv.isNotEmpty) {
     return fromEnv;
   }
-  if (kReleaseMode) {
-    return 'https://api.admoving.addirceu.com.br';
-  }
-  if (kIsWeb) {
-    return 'http://localhost:8001';
-  }
-  if (defaultTargetPlatform == TargetPlatform.android) {
-    return 'http://10.0.2.2:8001';
-  }
-  return 'http://localhost:8001';
+  return 'https://api.admoving.addirceu.com.br';
 }
 
 Uri _uri(String path, {Map<String, String>? query}) {
